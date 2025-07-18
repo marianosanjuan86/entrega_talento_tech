@@ -1,17 +1,26 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import { Button, Card, Col, Container, Form, Row } from "react-bootstrap";
+import { FaFilter } from "react-icons/fa";
+import { CartContext } from "../context/CartContext";
 import Productos from "./Productos";
 
-const ProductList = ({ productos = [], agregarCarrito }) => {
+const ProductList = () => {
+  const { currentProducts, handleAddToCart, productos } =
+    useContext(CartContext);
   const [filtroCategoria, setFiltroCategoria] = useState("todos");
   const [filtroEdad, setFiltroEdad] = useState("todos");
   const [soloEducativos, setSoloEducativos] = useState(false);
   const [soloDestacados, setSoloDestacados] = useState(false);
 
-  const categorias = [...new Set(productos.map((p) => p.categoria))];
+  // Usar productos como fallback si currentProducts no existe
+  const productosAUsar = currentProducts || productos || [];
 
-  const edades = [...new Set(productos.map((p) => p.edad))];
+  // Obtener categorías y edades únicas
+  const categorias = [...new Set(productosAUsar.map((p) => p.categoria))];
+  const edades = [...new Set(productosAUsar.map((p) => p.edad))];
 
-  const productosFiltrados = productos.filter((producto) => {
+  // Aplicar filtros adicionales a los productos ya filtrados por búsqueda
+  const productosFiltrados = productosAUsar.filter((producto) => {
     const pasaCategoria =
       filtroCategoria === "todos" || producto.categoria === filtroCategoria;
     const pasaEdad = filtroEdad === "todos" || producto.edad === filtroEdad;
@@ -21,195 +30,113 @@ const ProductList = ({ productos = [], agregarCarrito }) => {
     return pasaCategoria && pasaEdad && pasaEducativo && pasaDestacado;
   });
 
+  const limpiarFiltros = () => {
+    setFiltroCategoria("todos");
+    setFiltroEdad("todos");
+    setSoloEducativos(false);
+    setSoloDestacados(false);
+  };
+
+  if (!productosAUsar || productosAUsar.length === 0) {
+    return (
+      <Container className="text-center py-5">
+        <h4 className="text-muted">No se encontraron productos</h4>
+        <p className="text-muted">Intenta con otros términos de búsqueda</p>
+      </Container>
+    );
+  }
+
   return (
     <div>
-      <div
-        style={{
-          backgroundColor: "#f8f9fa",
-          padding: "2rem",
-          borderRadius: "15px",
-          marginBottom: "2rem",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        }}
-      >
-        <h3
-          style={{
-            color: "#333",
-            marginBottom: "1.5rem",
-            textAlign: "center",
-            fontSize: "1.5rem",
-          }}
-        >
-          🔍 Encuentra el juguete perfecto
-        </h3>
+      {/* Panel de filtros */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Header className="bg-light">
+          <h5 className="mb-0 text-center">
+            <FaFilter className="me-2" />
+            🔍 Encuentra el juguete perfecto
+          </h5>
+        </Card.Header>
+        <Card.Body>
+          <Row className="g-3 align-items-end">
+            {/* Filtro por categoría */}
+            <Col xs={12} sm={6} md={3}>
+              <Form.Label className="fw-bold text-muted">
+                🎯 Categoría:
+              </Form.Label>
+              <Form.Select
+                value={filtroCategoria}
+                onChange={(e) => setFiltroCategoria(e.target.value)}
+                className="shadow-sm"
+              >
+                <option value="todos">Todas las categorías</option>
+                {categorias.map((categoria) => (
+                  <option key={categoria} value={categoria}>
+                    {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
+                  </option>
+                ))}
+              </Form.Select>
+            </Col>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "1rem",
-            alignItems: "end",
-          }}
-        >
-          <div>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontWeight: "bold",
-                color: "#555",
-              }}
-            >
-              🎯 Categoría:
-            </label>
-            <select
-              value={filtroCategoria}
-              onChange={(e) => setFiltroCategoria(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "8px",
-                border: "2px solid #e0e0e0",
-                fontSize: "1rem",
-                backgroundColor: "white",
-                color: "#333",
-                cursor: "pointer",
-              }}
-            >
-              <option value="todos">Todas las categorías</option>
-              {categorias.map((categoria) => (
-                <option key={categoria} value={categoria}>
-                  {categoria.charAt(0).toUpperCase() + categoria.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* Filtro por edad */}
+            <Col xs={12} sm={6} md={3}>
+              <Form.Label className="fw-bold text-muted">👶 Edad:</Form.Label>
+              <Form.Select
+                value={filtroEdad}
+                onChange={(e) => setFiltroEdad(e.target.value)}
+                className="shadow-sm"
+              >
+                <option value="todos">Todas las edades</option>
+                {edades.map((edad) => (
+                  <option key={edad} value={edad}>
+                    {edad}
+                  </option>
+                ))}
+              </Form.Select>
+            </Col>
 
-          <div>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontWeight: "bold",
-                color: "#555",
-              }}
-            >
-              👶 Edad:
-            </label>
-            <select
-              value={filtroEdad}
-              onChange={(e) => setFiltroEdad(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "8px",
-                border: "2px solid #e0e0e0",
-                fontSize: "1rem",
-                backgroundColor: "white",
-                color: "#333",
-                cursor: "pointer",
-              }}
-            >
-              <option value="todos">Todas las edades</option>
-              {edades.map((edad) => (
-                <option key={edad} value={edad}>
-                  {edad}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
-          >
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                cursor: "pointer",
-                fontSize: "1rem",
-                fontWeight: "bold",
-                color: "#555",
-              }}
-            >
-              <input
+            {/* Checkboxes */}
+            <Col xs={12} sm={6} md={3}>
+              <Form.Check
                 type="checkbox"
+                id="educativos"
+                label="🎓 Solo educativos"
                 checked={soloEducativos}
                 onChange={(e) => setSoloEducativos(e.target.checked)}
-                style={{ marginRight: "8px", transform: "scale(1.2)" }}
+                className="fw-bold text-muted mb-2"
               />
-              🎓 Solo educativos
-            </label>
-
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                cursor: "pointer",
-                fontSize: "1rem",
-                fontWeight: "bold",
-                color: "#555",
-              }}
-            >
-              <input
+              <Form.Check
                 type="checkbox"
+                id="destacados"
+                label="⭐ Solo destacados"
                 checked={soloDestacados}
                 onChange={(e) => setSoloDestacados(e.target.checked)}
-                style={{ marginRight: "8px", transform: "scale(1.2)" }}
+                className="fw-bold text-muted"
               />
-              ⭐ Solo destacados
-            </label>
-          </div>
+            </Col>
 
-          <div>
-            <button
-              onClick={() => {
-                setFiltroCategoria("todos");
-                setFiltroEdad("todos");
-                setSoloEducativos(false);
-                setSoloDestacados(false);
-              }}
-              style={{
-                width: "100%",
-                padding: "12px",
-                backgroundColor: "#6c757d",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "1rem",
-                fontWeight: "bold",
-              }}
-            >
-              🔄 Limpiar filtros
-            </button>
-          </div>
-        </div>
-      </div>
+            {/* Botón limpiar */}
+            <Col xs={12} sm={6} md={3}>
+              <Button
+                variant="secondary"
+                onClick={limpiarFiltros}
+                className="w-100"
+              >
+                🔄 Limpiar filtros
+              </Button>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
 
-      <div
-        style={{
-          textAlign: "center",
-          marginBottom: "2rem",
-          fontSize: "1.2rem",
-          color: "#666",
-        }}
-      >
+      {/* Contador de resultados */}
+      <div className="text-center mb-4">
         {productosFiltrados.length === 0 ? (
-          <p
-            style={{
-              padding: "2rem",
-              backgroundColor: "#fff3cd",
-              border: "1px solid #ffeaa7",
-              borderRadius: "8px",
-              color: "#856404",
-            }}
-          >
+          <div className="alert alert-warning" role="alert">
             😔 No encontramos juguetes con esos filtros. ¡Prueba con otros
             criterios!
-          </p>
+          </div>
         ) : (
-          <p>
+          <p className="text-muted">
             🎉 Encontramos <strong>{productosFiltrados.length}</strong> juguete
             {productosFiltrados.length !== 1 ? "s" : ""} perfecto
             {productosFiltrados.length !== 1 ? "s" : ""} para ti
@@ -217,23 +144,14 @@ const ProductList = ({ productos = [], agregarCarrito }) => {
         )}
       </div>
 
-      {/* Grid de productos */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: "2rem",
-          justifyItems: "center",
-        }}
-      >
+      {/* Grid de productos usando tu componente Productos */}
+      <Row className="g-4">
         {productosFiltrados.map((producto) => (
-          <Productos
-            key={producto.id}
-            producto={producto}
-            agregarCarrito={agregarCarrito}
-          />
+          <Col key={producto.id} xs={12} sm={6} md={4} lg={3}>
+            <Productos producto={producto} agregarCarrito={handleAddToCart} />
+          </Col>
         ))}
-      </div>
+      </Row>
     </div>
   );
 };

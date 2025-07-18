@@ -1,137 +1,120 @@
-import React from "react";
+import React, { useContext } from "react";
+import { Card, Col, Container, Row } from "react-bootstrap";
+import { FaGraduationCap, FaStar, FaTruck } from "react-icons/fa";
 import Footer from "../components/estaticos/Footer";
 import Header from "../components/estaticos/Header";
 import Loader from "../components/estaticos/Loader";
+import Pagination from "../components/Pagination";
 import ProductList from "../components/ProductList";
+import SearchBar from "../components/SearchBar";
+import { CartContext } from "../context/CartContext";
 
-const Home = ({
-  cart,
-  borrarProducto,
-  cargando,
-  agregarCarrito,
-  productos,
-}) => {
+const Home = () => {
+  const { cargando, error } = useContext(CartContext);
+
+  if (error) {
+    return (
+      <Container className="mt-5 text-center">
+        <h2 className="text-danger">Error al cargar productos</h2>
+        <p>Por favor, intenta nuevamente más tarde.</p>
+      </Container>
+    );
+  }
+
   return (
     <>
-      <Header borrarProducto={borrarProducto} cartItems={cart} />
-      <main style={{ padding: "2rem", minHeight: "70vh" }}>
-        {/* Hero Section */}
+      <Header />
+      <main style={{ minHeight: "70vh" }}>
         <section
+          className="text-center mb-4 py-4 text-white"
           style={{
-            textAlign: "center",
-            marginBottom: "3rem",
-            padding: "2rem",
             background: "linear-gradient(135deg, #ff6b6b, #4ecdc4)",
-            color: "white",
-            borderRadius: "15px",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+            margin: "0",
+            borderRadius: "0",
+            minHeight: "200px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <h1
-            style={{
-              fontSize: "3rem",
-              marginBottom: "1rem",
-              textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
-            }}
-          >
-            🧸 ¡Bienvenidos a JugueteLandia! 🎮
-          </h1>
-          <p
-            style={{
-              fontSize: "1.2rem",
-              maxWidth: "600px",
-              margin: "0 auto",
-              lineHeight: "1.6",
-            }}
-          >
-            Descubre el mundo mágico de los juguetes donde la diversión y el
-            aprendizaje se encuentran. Tenemos todo lo que necesitas para hacer
-            sonreír a los pequeños y estimular su creatividad e imaginación.
-          </p>
+          <Container>
+            <Row className="justify-content-center">
+              <Col md={8}>
+                <h1 className="display-4 fw-bold mb-3">
+                  ¡Bienvenidos a JugueteLandia! 🎮
+                </h1>
+                <p className="lead mb-0">
+                  Descubre el mundo mágico de los juguetes donde la diversión y
+                  el aprendizaje se encuentran. Tenemos todo lo que necesitas
+                  para hacer sonreír a los pequeños.
+                </p>
+              </Col>
+            </Row>
+          </Container>
         </section>
 
-        {/* Características destacadas */}
-        <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: "2rem",
-            marginBottom: "3rem",
-          }}
-        >
-          <div
-            style={{
-              textAlign: "center",
-              padding: "1.5rem",
-              backgroundColor: "#fff3e0",
-              borderRadius: "10px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            }}
-          >
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🎓</div>
-            <h3 style={{ color: "#ff6b35", marginBottom: "0.5rem" }}>
-              Educativos
-            </h3>
-            <p style={{ color: "#666" }}>
-              Juguetes que enseñan mientras divierten
-            </p>
-          </div>
+        <Container className="my-4">
+          <Row className="g-3">
+            <Col xs={12} sm={6} md={4}>
+              <Card className="h-100 border-0 shadow-sm">
+                <Card.Body className="text-center p-3">
+                  <FaGraduationCap className="text-warning mb-2" size={40} />
+                  <Card.Title className="h5 text-warning">
+                    Educativos
+                  </Card.Title>
+                  <Card.Text className="small">
+                    Juguetes que enseñan mientras divierten
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col xs={12} sm={6} md={4}>
+              <Card className="h-100 border-0 shadow-sm">
+                <Card.Body className="text-center p-3">
+                  <FaStar className="text-success mb-2" size={40} />
+                  <Card.Title className="h5 text-success">
+                    Calidad Premium
+                  </Card.Title>
+                  <Card.Text className="small">
+                    Materiales seguros y duraderos
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+            <Col xs={12} sm={12} md={4}>
+              <Card className="h-100 border-0 shadow-sm">
+                <Card.Body className="text-center p-3">
+                  <FaTruck className="text-primary mb-2" size={40} />
+                  <Card.Title className="h5 text-primary">
+                    Envío Rápido
+                  </Card.Title>
+                  <Card.Text className="small">
+                    Llega a tu casa en 24-48 horas
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
 
-          <div
-            style={{
-              textAlign: "center",
-              padding: "1.5rem",
-              backgroundColor: "#e8f5e8",
-              borderRadius: "10px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            }}
-          >
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🌟</div>
-            <h3 style={{ color: "#4caf50", marginBottom: "0.5rem" }}>
-              Calidad Premium
-            </h3>
-            <p style={{ color: "#666" }}>Materiales seguros y duraderos</p>
-          </div>
+        <Container className="mb-4">
+          <section>
+            <h2 className="text-center h3 mb-4">
+              🎯 Nuestros Juguetes Favoritos
+            </h2>
 
-          <div
-            style={{
-              textAlign: "center",
-              padding: "1.5rem",
-              backgroundColor: "#e3f2fd",
-              borderRadius: "10px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            }}
-          >
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🚚</div>
-            <h3 style={{ color: "#2196f3", marginBottom: "0.5rem" }}>
-              Envío Rápido
-            </h3>
-            <p style={{ color: "#666" }}>Llega a tu casa en 24-48 horas</p>
-          </div>
-        </section>
+            <SearchBar />
 
-        {/* Productos */}
-        <section>
-          <h2
-            style={{
-              textAlign: "center",
-              fontSize: "2.5rem",
-              color: "#333",
-              marginBottom: "2rem",
-            }}
-          >
-            🎯 Nuestros Juguetes Favoritos
-          </h2>
-
-          {cargando ? (
-            <Loader mensaje="🧸 Cargando juguetes mágicos..." />
-          ) : (
-            <ProductList
-              agregarCarrito={agregarCarrito}
-              productos={productos}
-            />
-          )}
-        </section>
+            {cargando ? (
+              <Loader mensaje="🧸 Cargando juguetes mágicos..." />
+            ) : (
+              <>
+                <ProductList />
+                <Pagination />
+              </>
+            )}
+          </section>
+        </Container>
       </main>
 
       <Footer />

@@ -1,12 +1,21 @@
 import React, { useContext, useEffect, useState } from "react";
+import { Badge, Button, Card } from "react-bootstrap";
+import {
+  FaEye,
+  FaGraduationCap,
+  FaHeart,
+  FaMinus,
+  FaPlus,
+  FaShoppingCart,
+} from "react-icons/fa";
 import { Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 import { CartContext } from "../context/CartContext";
-import "./styleProductos.css";
 
 const Productos = ({ producto, agregarCarrito }) => {
   const [cantidad, setCantidad] = useState(0);
   const [imageError, setImageError] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const { cart } = useContext(CartContext);
 
   const increase = () => {
@@ -19,22 +28,16 @@ const Productos = ({ producto, agregarCarrito }) => {
     setCantidad((prev) => (prev > 1 ? prev - 1 : 0));
   };
 
-  const handleAgregarCarrito = () => {
-    if (cantidad > 0) {
-      agregarCarrito({ ...producto, cantidad: cantidad });
-      Swal.fire({
-        title: "¡Agregado al carrito!",
-        text: `${producto.nombre} (x${cantidad}) se agregó a tu carrito`,
-        icon: "success",
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        background: "#fff",
-        color: "#333",
-        iconColor: "#28a745",
-      });
+  const handleAgregarCarrito = async () => {
+    if (cantidad > 0 && !isAdding) {
+      setIsAdding(true);
+      try {
+        await agregarCarrito({ ...producto, cantidad: cantidad });
+      } catch {
+        toast.error("Error al agregar al carrito");
+      } finally {
+        setIsAdding(false);
+      }
     }
   };
 
@@ -43,33 +46,9 @@ const Productos = ({ producto, agregarCarrito }) => {
   };
 
   const renderPlaceholder = () => (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#f8f9fa",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#6c757d",
-        border: "2px dashed #dee2e6",
-        borderRadius: "8px",
-      }}
-    >
-      <div style={{ fontSize: "3rem", marginBottom: "8px", opacity: 0.5 }}>
-        📦
-      </div>
-      <div
-        style={{
-          fontSize: "0.9rem",
-          fontWeight: "500",
-          textAlign: "center",
-          lineHeight: "1.4",
-        }}
-      >
-        Imagen no disponible
-      </div>
+    <div className="d-flex flex-column align-items-center justify-content-center bg-light border rounded h-100">
+      <div style={{ fontSize: "3rem", opacity: 0.3 }}>📦</div>
+      <small className="text-muted">Imagen no disponible</small>
     </div>
   );
 
@@ -81,274 +60,129 @@ const Productos = ({ producto, agregarCarrito }) => {
   }, [cart, producto.id]);
 
   return (
-    <div
-      style={{
-        backgroundColor: "#fff",
-        borderRadius: "16px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-        overflow: "hidden",
-        transition: "all 0.3s ease",
-        border: "1px solid #f0f0f0",
-        height: "580px",
-        display: "flex",
-        flexDirection: "column",
-      }}
-      onMouseEnter={(e) => {
-        e.target.style.transform = "translateY(-4px)";
-        e.target.style.boxShadow = "0 8px 30px rgba(0,0,0,0.12)";
-      }}
-      onMouseLeave={(e) => {
-        e.target.style.transform = "translateY(0)";
-        e.target.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)";
-      }}
-    >
+    <Card className="h-100 shadow-sm border-0 product-card">
+      {/* Imagen del producto */}
       <div
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          height: "220px",
-          backgroundColor: "#f8f9fa",
-        }}
+        className="position-relative"
+        style={{ height: "200px", overflow: "hidden" }}
       >
         {imageError ? (
           renderPlaceholder()
         ) : (
-          <img
+          <Card.Img
+            variant="top"
             src={producto.imagen}
             alt={producto.nombre}
             onError={handleImageError}
             style={{
-              paddingTop: "5%",
-              width: "100%",
               height: "100%",
-              objectFit: "cover",
-              objectPosition: "center",
+              objectFit: "contain",
               transition: "transform 0.3s ease",
             }}
-            onMouseEnter={(e) => (e.target.style.transform = "scale(1.03)")}
-            onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+            className="product-image"
           />
         )}
-        <div
-          style={{
-            position: "absolute",
-            top: "12px",
-            right: "12px",
-            backgroundColor: producto.stock > 5 ? "#28a745" : "#dc3545",
-            color: "white",
-            padding: "4px 8px",
-            borderRadius: "12px",
-            fontSize: "0.8rem",
-            fontWeight: "bold",
-          }}
-        >
-          Stock: {producto.stock}
+
+        {/* Badges superiores */}
+        <div className="position-absolute top-0 start-0 p-2">
+          {producto.destacado && (
+            <Badge bg="danger" className="me-1 mb-1">
+              <FaHeart className="me-1" />
+              Destacado
+            </Badge>
+          )}
+          {producto.educativo && (
+            <Badge bg="success" className="mb-1">
+              <FaGraduationCap className="me-1" />
+              Educativo
+            </Badge>
+          )}
         </div>
       </div>
 
-      <div
-        style={{
-          padding: "20px",
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-        }}
-      >
-        <div>
-          <h3
-            style={{
-              margin: "0 0 8px 0",
-              fontSize: "1.1rem",
-              fontWeight: "bold",
-              color: "#333",
-              lineHeight: "1.3",
-              height: "44px",
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}
+      {/* Contenido del producto */}
+      <Card.Body className="d-flex flex-column">
+        {/* Información básica */}
+        <div className="mb-auto">
+          <Card.Title
+            className="h6 mb-2"
+            style={{ height: "48px", overflow: "hidden" }}
           >
             {producto.nombre}
-          </h3>
-          <div
-            style={{
-              fontSize: "1.4rem",
-              fontWeight: "bold",
-              color: "#2c5aa0",
-              marginBottom: "16px",
-            }}
-          >
-            ${producto.precio}
+          </Card.Title>
+
+          <div className="mb-2">
+            <Badge bg="secondary" className="me-1">
+              {producto.categoria}
+            </Badge>
+            <Badge bg="info" className="me-1">
+              {producto.edad}
+            </Badge>
           </div>
+
+          <div className="text-primary fw-bold h5 mb-3">${producto.precio}</div>
         </div>
 
-        <div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              margin: "12px 0",
-              padding: "10px",
-              backgroundColor: "#f8f9fa",
-              borderRadius: "12px",
-            }}
-          >
-            <button
+        {/* Controles de cantidad */}
+        <div className="mb-3">
+          <div className="d-flex align-items-center justify-content-center gap-2 mb-2">
+            <Button
+              variant="outline-primary"
+              size="sm"
               onClick={decrease}
-              style={{
-                width: "40px",
-                height: "40px",
-                border: "2px solid #2c5aa0",
-                backgroundColor: "white",
-                color: "#2c5aa0",
-                borderRadius: "50%",
-                cursor: "pointer",
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "#2c5aa0";
-                e.target.style.color = "white";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = "white";
-                e.target.style.color = "#2c5aa0";
-              }}
+              disabled={cantidad === 0 || isAdding}
+              className="rounded-circle"
+              style={{ width: "35px", height: "35px" }}
             >
-              −
-            </button>
-            <span
-              style={{
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                color: "#333",
-                minWidth: "40px",
-                textAlign: "center",
-                padding: "8px 16px",
-                backgroundColor: "white",
-                borderRadius: "8px",
-                border: "2px solid #e9ecef",
-              }}
-            >
-              {cantidad}
-            </span>
-            <button
-              onClick={increase}
-              disabled={cantidad >= producto.stock}
-              style={{
-                width: "40px",
-                height: "40px",
-                border: "2px solid #2c5aa0",
-                backgroundColor: cantidad >= producto.stock ? "#ccc" : "white",
-                color: cantidad >= producto.stock ? "#666" : "#2c5aa0",
-                borderRadius: "50%",
-                cursor: cantidad >= producto.stock ? "not-allowed" : "pointer",
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                if (cantidad < producto.stock) {
-                  e.target.style.backgroundColor = "#2c5aa0";
-                  e.target.style.color = "white";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (cantidad < producto.stock) {
-                  e.target.style.backgroundColor = "white";
-                  e.target.style.color = "#2c5aa0";
-                }
-              }}
-            >
-              +
-            </button>
-          </div>
+              <FaMinus size={12} />
+            </Button>
 
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-          >
-            <button
-              onClick={handleAgregarCarrito}
-              disabled={producto.stock === 0}
-              style={{
-                width: "100%",
-                padding: "10px 15px",
-                backgroundColor: producto.stock === 0 ? "#ccc" : "#2c5aa0",
-                color: "white",
-                border: "none",
-                borderRadius: "12px",
-                cursor: producto.stock === 0 ? "not-allowed" : "pointer",
-                fontSize: "1rem",
-                fontWeight: "bold",
-                transition: "all 0.3s ease",
-                textTransform: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-              }}
-              onMouseEnter={(e) => {
-                if (producto.stock > 0) {
-                  e.target.style.backgroundColor = "#1e3a5f";
-                  e.target.style.transform = "translateY(-2px)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (producto.stock > 0) {
-                  e.target.style.backgroundColor = "#2c5aa0";
-                  e.target.style.transform = "translateY(0)";
-                }
-              }}
+            <Badge bg="light" text="dark" className="px-3 py-2 fs-6">
+              {cantidad}
+            </Badge>
+
+            <Button
+              variant="outline-primary"
+              size="sm"
+              onClick={increase}
+              disabled={cantidad >= producto.stock || isAdding}
+              className="rounded-circle"
+              style={{ width: "35px", height: "35px" }}
             >
-              {producto.stock === 0 ? (
-                <>😔 Sin stock</>
-              ) : (
-                <>🛒 Agregar al carrito</>
-              )}
-            </button>
-            <Link
-              to={`/productos/${producto.id}`}
-              style={{
-                display: "block",
-                width: "100%",
-                padding: "10px 15px",
-                backgroundColor: "transparent",
-                color: "#2c5aa0",
-                border: "2px solid #2c5aa0",
-                borderRadius: "12px",
-                textDecoration: "none",
-                fontSize: "0.95rem",
-                fontWeight: "600",
-                textAlign: "center",
-                transition: "all 0.3s ease",
-                boxSizing: "border-box",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "#2c5aa0";
-                e.target.style.color = "white";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = "transparent";
-                e.target.style.color = "#2c5aa0";
-              }}
-            >
-              👁️ Ver detalles
-            </Link>
+              <FaPlus size={12} />
+            </Button>
           </div>
         </div>
-      </div>
-    </div>
+
+        {/* Botones de acción */}
+        <div className="d-grid gap-2">
+          <Button
+            variant="primary"
+            onClick={handleAgregarCarrito}
+            disabled={producto.stock === 0 || cantidad === 0 || isAdding}
+            className="fw-bold"
+          >
+            <FaShoppingCart className="me-2" />
+            {isAdding
+              ? "Agregando..."
+              : producto.stock === 0
+              ? "Sin Stock"
+              : "Agregar al Carrito"}
+          </Button>
+
+          <Button
+            variant="outline-primary"
+            as={Link}
+            to={`/productos/${producto.id}`}
+            size="sm"
+            disabled={isAdding}
+          >
+            <FaEye className="me-2" />
+            Ver Detalles
+          </Button>
+        </div>
+      </Card.Body>
+    </Card>
   );
 };
 

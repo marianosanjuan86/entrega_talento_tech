@@ -1,188 +1,237 @@
 import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Container,
+  Form,
+  Row,
+  Badge,
+} from "react-bootstrap";
+import {
+  FaLock,
+  FaSignInAlt,
+  FaUser,
+  FaUserTie,
+  FaShoppingCart,
+  FaArrowLeft,
+} from "react-icons/fa";
+import { Navigate } from "react-router-dom";
 import Footer from "../components/estaticos/Footer";
 import Header from "../components/estaticos/Header";
-import { CartContext } from "../context/CartContext";
+import { AuthContext } from "../context/AuthContext";
 
 const Login = () => {
-  const { setIsAuthenticated } = useContext(CartContext);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const { login, isAuthenticated, user } = useContext(AuthContext);
+
+  // Redirigir según el rol del usuario
+  if (isAuthenticated && user) {
+    if (user.role === "admin") {
+      return <Navigate to="/admin" replace />;
+    } else if (user.role === "cliente") {
+      return <Navigate to="/" replace />;
+    }
+  }
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let validationErrors = {};
+    setLoading(true);
+    setError("");
 
-    if (!email) validationErrors.email = "Email es requerido";
-    if (!password) validationErrors.password = "Password es requerido";
+    const result = await login(formData.email, formData.password);
 
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+    if (!result.success) {
+      setError(result.error);
+      setLoading(false);
     }
+  };
 
-    try {
-      const res = await fetch("data/users.json");
-      const users = await res.json();
-
-      const foundUser = users.find(
-        (user) => user.email === email && user.password === password
-      );
-
-      if (!foundUser) {
-        setErrors({ email: "Credenciales inválidas" });
-      } else {
-        console.log("User role:", foundUser.role);
-
-        if (foundUser.role === "admin") {
-          setIsAuthenticated(true);
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
-      }
-    } catch (err) {
-      console.error("Error fetching users:", err);
-      setErrors({
-        email: "Algo salió mal. Por favor, inténtalo de nuevo más tarde.",
+  const fillCredentials = (userType) => {
+    if (userType === "admin") {
+      setFormData({
+        email: "admin@juguetelandia.com",
+        password: "admin123",
+      });
+    } else {
+      setFormData({
+        email: "cliente@juguetelandia.com",
+        password: "cliente123",
       });
     }
   };
 
   return (
     <>
-      <Header />
-      <main
-        style={{
-          minHeight: "70vh",
-          padding: "2rem",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ maxWidth: "500px", width: "100%" }}>
-          <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>
-            Iniciar Sesión
-          </h1>
+      <Container fluid className="py-5 bg-light" style={{ minHeight: "70vh" }}>
+        <Container>
+          <Row className="justify-content-center">
+            <Col md={8} lg={6}>
+              <Card className="border-0 shadow-sm">
+                <Card.Body className="p-5">
+                  <div className="text-center mb-4">
+                    <h2 className="display-6 fw-bold text-primary mb-3">
+                      <FaUser className="me-2" />
+                      Iniciar Sesión
+                    </h2>
+                    <p className="text-muted">
+                      Accede con tu cuenta para una mejor experiencia
+                    </p>
+                  </div>
 
-          <form
-            onSubmit={handleSubmit}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-              padding: "2rem",
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              backgroundColor: "#f9f9f9",
-            }}
-          >
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <label
-                htmlFor="formBasicEmail"
-                style={{ marginBottom: "0.5rem", fontWeight: "bold" }}
-              >
-                Email address
-              </label>
-              <input
-                id="formBasicEmail"
-                type="email"
-                placeholder="Enter email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  padding: "0.75rem",
-                  border: `1px solid ${errors.email ? "red" : "#ced4da"}`,
-                  borderRadius: "0.25rem",
-                  fontSize: "1rem",
-                }}
-              />
-              {errors.email && (
-                <div
-                  style={{
-                    color: "red",
-                    fontSize: "0.875rem",
-                    marginTop: "0.25rem",
-                  }}
-                >
-                  {errors.email}
-                </div>
-              )}
-            </div>
+                  {error && (
+                    <Alert variant="danger" className="mb-4">
+                      <strong>Error:</strong> {error}
+                    </Alert>
+                  )}
 
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <label
-                htmlFor="formBasicPassword"
-                style={{ marginBottom: "0.5rem", fontWeight: "bold" }}
-              >
-                Password
-              </label>
-              <input
-                id="formBasicPassword"
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  padding: "0.75rem",
-                  border: `1px solid ${errors.password ? "red" : "#ced4da"}`,
-                  borderRadius: "0.25rem",
-                  fontSize: "1rem",
-                }}
-              />
-              {errors.password && (
-                <div
-                  style={{
-                    color: "red",
-                    fontSize: "0.875rem",
-                    marginTop: "0.25rem",
-                  }}
-                >
-                  {errors.password}
-                </div>
-              )}
-            </div>
+                  {/* Credenciales de Prueba */}
+                  <div className="mb-4">
+                    <h6 className="fw-bold mb-3">Credenciales de Prueba:</h6>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Card className="border-primary">
+                          <Card.Body className="p-3 text-center">
+                            <FaUserTie
+                              className="text-primary mb-2"
+                              size={24}
+                            />
+                            <h6 className="fw-bold">Administrador</h6>
+                            <p className="small text-muted mb-2">
+                              Gestión completa de productos
+                            </p>
+                            <Badge bg="primary" className="mb-2 d-block">
+                              admin@juguetelandia.com
+                            </Badge>
+                            <Badge bg="secondary" className="mb-3 d-block">
+                              admin123
+                            </Badge>
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => fillCredentials("admin")}
+                              className="w-100"
+                            >
+                              Usar credenciales
+                            </Button>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                      <Col md={6}>
+                        <Card className="border-success">
+                          <Card.Body className="p-3 text-center">
+                            <FaShoppingCart
+                              className="text-success mb-2"
+                              size={24}
+                            />
+                            <h6 className="fw-bold">Cliente</h6>
+                            <p className="small text-muted mb-2">
+                              Experiencia de compra personalizada
+                            </p>
+                            <Badge bg="success" className="mb-2 d-block">
+                              cliente@juguetelandia.com
+                            </Badge>
+                            <Badge bg="secondary" className="mb-3 d-block">
+                              cliente123
+                            </Badge>
+                            <Button
+                              variant="outline-success"
+                              size="sm"
+                              onClick={() => fillCredentials("cliente")}
+                              className="w-100"
+                            >
+                              Usar credenciales
+                            </Button>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    </Row>
+                  </div>
 
-            <button
-              type="submit"
-              style={{
-                backgroundColor: "#007bff",
-                color: "white",
-                padding: "0.75rem",
-                border: "none",
-                borderRadius: "0.25rem",
-                cursor: "pointer",
-                fontSize: "1rem",
-                fontWeight: "bold",
-                marginTop: "1rem",
-              }}
-            >
-              Iniciar Sesión
-            </button>
-          </form>
+                  <Form onSubmit={handleSubmit}>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Form.Group>
+                          <Form.Label className="fw-bold">
+                            <FaUser className="me-2" />
+                            Email
+                          </Form.Label>
+                          <Form.Control
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder="tu@email.com"
+                            required
+                            disabled={loading}
+                            size="lg"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group>
+                          <Form.Label className="fw-bold">
+                            <FaLock className="me-2" />
+                            Contraseña
+                          </Form.Label>
+                          <Form.Control
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            placeholder="Tu contraseña"
+                            required
+                            disabled={loading}
+                            size="lg"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
 
-          {/* Credenciales de prueba */}
-          <div
-            style={{
-              marginTop: "1rem",
-              padding: "1rem",
-              backgroundColor: "#e9ecef",
-              borderRadius: "4px",
-              fontSize: "0.9rem",
-            }}
-          >
-            <strong>💡 Credenciales de prueba:</strong>
-            <p>
-              Revisa tu archivo <code>data/users.json</code> para ver los
-              usuarios disponibles
-            </p>
-          </div>
-        </div>
-      </main>
-      <Footer />
+                    <div className="d-grid mt-4">
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="lg"
+                        disabled={
+                          loading || !formData.email || !formData.password
+                        }
+                        className="fw-bold"
+                      >
+                        {loading ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" />
+                            Iniciando sesión...
+                          </>
+                        ) : (
+                          <>
+                            <FaSignInAlt className="me-2" />
+                            Iniciar Sesión
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </Form>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </Container>
     </>
   );
 };
